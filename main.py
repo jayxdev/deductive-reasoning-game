@@ -70,37 +70,44 @@ def display_grid(grid):
                     else:    
                         st.button(shape, key=f"button_{j}{i}")
 
-def game(grid_size):
+def game():
     # Generate the grid and modify it
     # Initialize session state
-    
-    if 'current_puzzle' not in st.session_state:
-        st.session_state.current_puzzle, st.session_state.shapes = create_puzzle_grid(grid_size)
-        st.session_state.puzzle_grid, st.session_state.question_mark_pos, st.session_state.ans = remove_icons(st.session_state.current_puzzle)
-
+    st.session_state.current_puzzle, st.session_state.shapes = create_puzzle_grid(st.session_state.grid_size)
+    st.session_state.puzzle_grid, st.session_state.question_mark_pos, st.session_state.ans = remove_icons(st.session_state.current_puzzle) 
     
     # Display the grid
     display_grid(st.session_state.puzzle_grid)
     
     # Show options for the user to click
-    st.write("#### Click on the shape that should replace the question mark:")
-    # Display shape options as horizontal buttons
+    columns=st.columns(1)
+    with columns[0]:
+        st.write("#### Click on the shape that should replace the question mark:")  
+    display_options()    
+            
+def display_options():
+     # Display shape options as horizontal buttons
     columns = st.columns(len(st.session_state.shapes)+6)
     for i, shape in enumerate(st.session_state.shapes):
         with columns[i+3]:
-            st.button(shape,key=f"shape_{i}", on_click=check_answer, args=(shape,st.session_state.ans))                        
-    
+            st.button(shape, key=f"shape_{i}", on_click=check_answer, args=(shape, st.session_state.ans))
+
 def check_answer(selected_shape,ans):
     # Get the original shape
     if selected_shape == ans:
         st.success("Congratulations! You correctly identified the shape.")
+        st.session_state.score+=1
+        st.session_state.max_score=max(st.session_state.score,st.session_state.max_score)
     else:
         st.error(f"Oops! The correct shape was {ans}. Try again.")
-    #next button
-    if st.button("Next Puzzle"):
-        game(grid_size)    
-        st.session_state.current_puzzle, st.session_state.shapes = create_puzzle_grid(len(st.session_state.current_puzzle))
+        st.session_state.score=0
+    reset_game()    
 
+def reset_game():          
+    for key in st.session_state.keys():
+        if key.startswith("button_") or key.startswith("shape_"):
+            del st.session_state[key]
+            
         
 
 if __name__ == "__main__":
@@ -118,8 +125,18 @@ if __name__ == "__main__":
     Instructions: ...
     """)
     #grid sizes are 3x3, 4x4, 5x5
-    grid_size = st.sidebar.slider("Grid Size", min_value=3, max_value=5, value=4)
-    
-    game(grid_size)
+    if "Grid Size" not in st.session_state:
+        st.session_state.grid_size=3
+    st.session_state.grid_size = st.sidebar.slider("Grid Size", min_value=3, max_value=5, value=st.session_state.grid_size)
+    if "score" not in st.session_state:
+        st.session_state.score=0
+        st.session_state.max_score=0
+    if st.session_state.score>5:
+        st.session_state.grid_size = 4
+    if st.session_state.score > 10:
+        st.session_state.grid_size = 5          
+    st.sidebar.write(f"Score: {st.session_state.score}")
+    st.sidebar.write(f"Max Score: {st.session_state.max_score}")
+    game()
 
     
