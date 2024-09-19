@@ -1,6 +1,7 @@
 import streamlit as st
 import numpy as np
 import random
+import time
 
 icons = ["🟢", "🟥", "💙", "➕", "⭐"]
 
@@ -94,13 +95,16 @@ def display_options():
 
 def check_answer(selected_shape,ans):
     # Get the original shape
+    message_placeholder = st.empty()
     if selected_shape == ans:
-        st.success("Congratulations! You correctly identified the shape.")
+        message_placeholder.success("Congratulations! You correctly identified the shape.", icon="✅")
         st.session_state.score+=1
         st.session_state.max_score=max(st.session_state.score,st.session_state.max_score)
     else:
-        st.error(f"Oops! The correct shape was {ans}. Try again.")
+        message_placeholder.error(f"Oops! The correct shape was {ans}. Try again.")
         st.session_state.score=0
+    time.sleep(1.5)
+    message_placeholder.empty()    
     reset_game()    
 
 def reset_game():          
@@ -122,7 +126,7 @@ if __name__ == "__main__":
 
     st.sidebar.title("Instructions")
     st.sidebar.info("""Welcome to the Capgemini Puzzle Game!
-    Instructions: ...
+    Instructions: Choose a shape such that all shapes are disinct in that row and column.
     """)
     #grid sizes are 3x3, 4x4, 5x5
     if "Grid Size" not in st.session_state:
