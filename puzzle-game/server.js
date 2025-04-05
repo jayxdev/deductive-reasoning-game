@@ -3,8 +3,8 @@ const { MongoClient } = require('mongodb');
 const app = express();
 const port = process.env.PORT || 3000;
 
-// MongoDB connection
-const uri = 'mongodb+srv://jay7080dev:pRxQWEX0TKtVgET0@cluster0.7zneyp3.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0'; // Replace with your connection string
+// MongoDB connection using environment variable
+const uri = process.env.MONGODB_URI; // Access from env
 const client = new MongoClient(uri);
 
 let leaderboardCollection;
@@ -22,9 +22,11 @@ async function connectToMongo() {
         }
     } catch (error) {
         console.error('MongoDB connection error:', error);
+        throw error; // Fail fast if connection fails
     }
 }
 
+// Rest of your server.js remains unchanged up to the listen block
 app.use(express.static('public'));
 app.use(express.json());
 
@@ -103,7 +105,7 @@ app.post('/update-leaderboard', async (req, res) => {
             console.log(`Added ${name} to leaderboard: ${score}`);
         }
         leaderboard.sort((a, b) => b.score - a.score || a.timestamp - b.timestamp);
-        leaderboard = leaderboard.slice(0, 10); // Keep top 10
+        leaderboard = leaderboard.slice(0, 10);
         await leaderboardCollection.updateOne({}, { $set: { leaderboard } }, { upsert: true });
         console.log('Current leaderboard state:', JSON.stringify(leaderboard, null, 2));
         res.json({ success: true, leaderboard });
