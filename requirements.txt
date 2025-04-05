@@ -1,0 +1,2 @@
+streamlit-javascript
+pyyaml ua-parser user-agents
